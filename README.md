@@ -77,6 +77,7 @@ function TodoList({ todosList, activeTab }) {
 이는 부모 컴포넌트에서 `props가` 변경되거나, 상태(`state`)가 변경될 때마다 자식 컴포넌트가 불필요하게 다시 렌더링 되는 번거로운 작업의 원인이 된다.
 
 #### 사용법
+
 ```jsx
 const 저장할함수 = useCallback(() => {
   return 함수코드;
@@ -86,3 +87,13 @@ const 저장할함수 = useCallback(() => {
 ---
 
 ### 3. React.memo()
+
+memo() 함수는 컴포넌트 전체를 감싸야 한다. {props} 전달 받은 값이 변하지 않으면, 함수 호출 하지 않는다.
+
+#### 사용법
+```jsx
+const 저장컴포넌트 = memo((props)=>{
+  함수 컴포넌트 코드
+})
+
+```

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 
 const App = () => {
@@ -23,11 +23,17 @@ const App = () => {
   return (
     <div className="app-wrapper">
       <h2>useMemo : 함수의 결과값을 저장하는 곳 </h2>
-      <div>numPlus한 결과 값 : {numPlus01}</div>
+      <NumberDisplay num={num}></NumberDisplay>
+      <div>numPlus01 : {numPlus01}</div>
       <button onClick={() => setNum(num + 1)}>더하기</button>
       <button onClick={() => setRender(!render)}>리랜더</button>
     </div>
   );
 };
+
+const NumberDisplay = memo(({ num }) => {
+  console.log("display랜더링");
+  return <div>num : {num} </div>;
+});
 
 export default App;
