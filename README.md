@@ -1,85 +1,99 @@
-# GitHub 과제 사용 방법
+# React Optimizing Performance 성능최적화
 
 > ## 목차
+
+## 리액트의 함수 최적화 필요성
+
+함수 컴포넌트를 한번 만들어두면, 상태가 변경이 될 때마다 화면이 계속 랜더링 됨.
+이전의 호출했던 함수는 더이상 사용하지 않고,
+새로운 상태값으로 함수 호출
+이로 인하여 랜더링이 계속 발생함!
+
+### 함수를 새롭게 호출한다?
+
+함수 내부의 변수,함수들이 모두 **새로 선언되고 새로 할당**이 된다는 뜻
+즉, **재사용을 가능한 함수들도** 불필요하게 새로 생성한다는 뜻.
+
+> 이로인해 비효율적 메모리 낭비 발생
 >
-> [1. Fork](#fork)
->
-> [2. Clone](#clone)
->
-> [3. 과제 수행](#과제-수행)
->
-> [4. Push](#push)
->
-> [5. LMS 제출](#lms-제출)
->
-> [6. 정답 코드 보는 법](#정답-코드-보기)
+> #### 해결방안 : 함수를 저장 + 재사용
 
-## Fork
+## 최적화 방법 3가지
 
-1. fork 버튼을 눌러 자신의 Repository로 복사합니다.
+> - **useMemo() 함수**
+> - **useCallback() 함수**
+> - **memo() 함수**
 
-- `fork` 버튼을 클릭하여 `fork` 생성합니다.
-  ![fork 버튼](./README_SOURCES/images/how-to-fork.png)
-- 생성된 `fork`에서 `Owner`가 자신이 선택되어있는지를 확인합니다.
-- (`Repository name`과 `Description`은 자유롭게 작성해주셔도 괜찮습니다.)
-- create 버튼을 눌러 `fork`합니다.
-  ![fork 상세](./README_SOURCES/images/fork-detail.png)
-- `fork`된 자신의 Repository를 확인합니다.
-  ![fork 확인](./README_SOURCES/images/fork-confirm.png)
+1. useMemo() : 함수 호출 결과를 (?)에 저장하는 함수
+2. useCallback() : 함수를 (?)에 저장
+3. memo() : 컴포넌트를 (?) 에 저장
 
-## Clone
+---
 
-2. 자신의 GitHub Repository에서 clone하여 로컬 환경으로 복사
+### 1.useMemo()
 
-- `clone`을 하기 위해 `<> Code` 버튼을 누릅니다.
-  ![clone 버튼](./README_SOURCES/images/how-to-clone.png)
-- 드랍다운 내용에서 `Local`의 `복사` 버튼을 눌러 GitHub Repository 주소를 복사합니다.
-  ![clone 버튼](./README_SOURCES/images/clone-detail.png)
+함수 호출시 전해주는 **인자값이 동일하다면**, 굳이 새로 만들지 않고 동일한값을 반환 하겠다!
+이전에 계산된 값을 기억하고, 해당 값이 변경되지 않으면 이전에 계산된 값을 재사용한다.
+아래 참고 스샷을 보게 되면, '랜더링' 이라는 버튼을 전혀 '더하기' 버튼과는 전혀 상관이 없는데도 , 상태가 바뀌면서
+`App` **함수 컴포넌트가 리랜더링 되니깐,** '랜더링' 도 함께 랜더링이 되는 현상이 나타난다.
 
-- 터미널에서 아래 코드에서 `[복사한 GitHub Repository 주소]` 내용을 위에서 복사한 내용으로 바꾸어 실행합니다.
+![alt text](useMemo사용전.gif)
 
-```bash
-git clone [복사한 GitHub Repository 주소]
+#### 사용방법
+
+```jsx
+const 저장할결과값 = useMemo(()=>{
+return 함수코드;
+}.[값])
+
+  //useMemo()함수 아용해서 값 저장하기
+  const numPlus01 = useMemo(() => {
+    return plus01(num);
+  }, [num]);
+
 ```
 
-## 과제 수행
+- 이 함수를 호출 했을 때의, `[값]`이 변하지 않으면 이 함수를 다시 호출 하지 않음
+- 예를들어, `numPlus01` 의 값은 어떠한 이벤트 효과로 `[num]` 값이 바뀌면 `plus01(num)` 함수를 실행하겠다.
 
-3. 로컬 환경에서 과제 수행
-
-- 과제 정보와 과제 요구사항에 맞춰 과제를 진행합니다.
-
-## Push
-
-4. 자신의 GitHub Repository에 push
-
-- add, commit, push를 활용하여 자신의 GitHub Repository에 수행한 과제를 저장합니다.
-- `add`
-
-```bash
-git add [파일 경로 (전체일 경우: .)]
+```jsx
+import { useMemo } from "react";
+function TodoList({ todosList, activeTab }) {
+  // filteredTodos 함수를 호출하여 현재 선택된 탭에 해당하는 할 일 목록을 가져와서 캐시
+  const filteredTodos = useMemo(
+    () => filterTodos(todosList, activeTab),
+    //
+    [todosList, activeTab] // todosList와 activeTab이 변경될 때마다 filteredTodos 값을 다시 계산
+  );
+  // ...
+}
 ```
 
-- `commit`
+---
 
-```bash
-git commit -m "[commit 메세지]"
+### 2. useCallback() ⭐️함수 자체를⭐️저장
+
+리액트 내에서 함수를 선언하면, 매 렌더링될 때마다 **해당 함수는 새로 생성**됩니다.
+이는 부모 컴포넌트에서 `props가` 변경되거나, 상태(`state`)가 변경될 때마다 자식 컴포넌트가 불필요하게 다시 렌더링 되는 번거로운 작업의 원인이 된다.
+
+#### 사용법
+
+```jsx
+const 저장할함수 = useCallback(() => {
+  return 함수코드;
+}, [값]);
 ```
 
-- `push`
+---
 
-```bash
-git push [remote name] [branch name]
+### 3. React.memo()
+
+memo() 함수는 컴포넌트 전체를 감싸야 한다. {props} 전달 받은 값이 변하지 않으면, 함수 호출 하지 않는다.
+
+#### 사용법
+```jsx
+const 저장컴포넌트 = memo((props)=>{
+  함수 컴포넌트 코드
+})
+
 ```
-
-## LMS 제출
-
-5. LMS에 GitHub Repository 링크를 복사하여 제출
-
-- GitHub Repository의 주소를 복사하여 LMS에 제출합니다.
-
-## 정답 코드 보기
-
-- 정답 코드는 answer 브랜치에 저장되어있습니다. 브랜치는 터미널에서 다음 명령어를 통해 이동할 수 있습니다.
-  ```bash
-  git checkout answer
-  ```
