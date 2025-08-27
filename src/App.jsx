@@ -1,45 +1,27 @@
-import React, { useState } from "react";
+import { useMemo, useState } from "react";
 import "./App.css";
 
-// 리스트 항목 컴포넌트
-const ListItem = ({ item, onClick }) => {
-  console.log(`Rendering ${item}`);
-  return <li onClick={() => onClick(item)}>{item}</li>;
-};
-
 const App = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [num, setNum] = useState(0);
+  const [render, setRender] = useState(false); //상태플래그
 
-  const items = ["Apple", "Banana", "Cherry", "Date", "Fig", "Grape"];
-
-  const filteredItems = items.filter((item) =>
-    item.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleItemClick = (item) => {
-    setSelectedItem(item);
+  //+1 함수
+  const plus01 = (num) => {
+    console.log("plus01작성됨!");
+    return num + 1;
   };
+
+  //useMemo()함수 아용해서 값 저장하기
+  const numPlus01 = useMemo(() => {
+    return plus01(num);
+  }, [num]);
 
   return (
     <div className="app-wrapper">
-      <div className="app-container">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search..."
-          className="search-input"
-        />
-        <ul className="item-list">
-          {filteredItems.map((item) => (
-            <ListItem key={item} item={item} onClick={handleItemClick} />
-          ))}
-        </ul>
-        {selectedItem && (
-          <p className="selected-item">Selected Item: {selectedItem}</p>
-        )}
-      </div>
+      <h2>useMemo : 함수의 결과값을 저장하는 곳 </h2>
+      <div>numPlus한 결과 값 : {numPlus01}</div>
+      <button onClick={() => setNum(num + 1)}>더하기</button>
+      <button onClick={() => setRender(!render)}>리랜더</button>
     </div>
   );
 };
